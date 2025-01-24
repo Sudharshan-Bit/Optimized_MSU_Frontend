@@ -5,7 +5,7 @@ import sendJsonData from '../../apiService';
 
 const OPUSnet = ({ onLayerReady,symbolType,is3D}) => {
   useEffect(() => {
-    const date = new Date('2010-01-01');
+    const date = new Date('2019-01-01');
     const input_data = {
       date: date,
       options: 'Over All Vs MYCS2', // Adjust options as needed
@@ -41,6 +41,8 @@ const OPUSnet = ({ onLayerReady,symbolType,is3D}) => {
         }
 
         console.log("asiudhlahsdlnasldhalsuhdlahsd",fetchedData)
+        console.log();
+
         const renderer = {
           type: 'unique-value',
           field: 'STATUS',
