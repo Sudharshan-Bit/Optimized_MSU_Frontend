@@ -7,6 +7,7 @@ import Widgets from './layers/Widgets'; // Widgets Component
 import StacovFile from './layers/StacovFile';
 import Overall from './layers/Overall';
 import OPUSnet from './layers/OPUSnet';
+import OverallVsMycs2 from './layers/OverallVsMycs2';
 
 const CORSMap = ({ selectedLayer = null, is3D = false }) => {
   const mapRef = useRef(null); // Map container reference
@@ -24,8 +25,8 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
       ? new SceneView({
           container: mapRef.current,
           map: mapInstance,
-          center: [0, 0], // Default center for 3D
-          zoom: 3,
+          center: [-99.7129, 37.0902], // Default center for 3D
+          zoom: 4,
         })
       : new MapView({
           container: mapRef.current,
@@ -77,6 +78,8 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
         return <Overall onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
       case 'OPUSNET Data':
         return <OPUSnet onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
+      case 'Over All Vs MYCS2':
+        return<OverallVsMycs2 onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
       default:
         if (map) {
           map.layers.removeAll();
