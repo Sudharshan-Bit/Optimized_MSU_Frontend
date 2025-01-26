@@ -170,7 +170,6 @@
 //     </div>
 //   );
 // };
-
 // export default Widgets;
 import React, { useEffect, useRef, useState } from "react";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
@@ -187,7 +186,7 @@ import CoordinateConversion from "@arcgis/core/widgets/CoordinateConversion";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel"; // For selection tool
 
-const Widgets = ({ view }) => {
+const Widgets = ({ view,is3D }) => {
   const widgetsRef = useRef({
     fullscreen: false,
     search: false,
@@ -217,6 +216,7 @@ const Widgets = ({ view }) => {
     if (!view) return; // Ensure view is passed
 
     // Wait until the view is fully initialized
+
     view.when(() => {
       if (view.ui) {
         // Add widgets if they haven't been added yet
@@ -225,6 +225,7 @@ const Widgets = ({ view }) => {
           view.ui.add(searchWidget, 'top-right');
           widgetsRef.current.search = searchWidget;
         }
+        
 
         if (!widgetsRef.current.basemapGallery) {
           const basemapGallery = new Expand({
@@ -258,15 +259,95 @@ const Widgets = ({ view }) => {
           widgetsRef.current.fullscreen = fullscreenWidget;
         }
 
-        if (!widgetsRef.current.bookmarks) {
-          const bookmarks = new Expand({
-            content: new Bookmarks({ view }),
-            view,
-            expanded: false,
-          });
-          view.ui.add(bookmarks, 'top-right');
-          widgetsRef.current.bookmarks = bookmarks;
+        if(is3D){
+        }else{
+          if (!widgetsRef.current.bookmarks) {
+            const bookmarks = new Expand({
+              content: new Bookmarks({ view }),
+              view,
+              expanded: false,
+            });
+            view.ui.add(bookmarks, 'top-right');
+            widgetsRef.current.bookmarks = bookmarks;
+          }
+          if (!widgetsRef.current.print) {
+            const printWidget = new Print({
+              view: view,
+              printServiceUrl:
+                "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+            });
+            const printExpand = new Expand({
+              content: printWidget,
+              view: view,
+              expanded: false,
+              expandIconClass: "esri-icon-printer",
+              expandTooltip: "Print Map",
+            });
+            view.ui.add(printExpand, "top-right");
+            widgetsRef.current.print = printExpand;
+          }
+  
+          if (!widgetsRef.current.measurement) {
+            const measurement = new Measurement({ view });
+            view.ui.add(measurement, "bottom-right");
+            widgetsRef.current.measurement = measurement;
+          }
+  
+          // Create SketchViewModel for selecting geometry
+          if (!widgetsRef.current.sketchViewModel) {
+            sketchViewModelRef.current = new SketchViewModel({
+              view,
+              layer: new GraphicsLayer(),
+              polygonSymbol: { type: "simple-fill", color: [255, 0, 0, 0.3], outline: { color: "red", width: 2 } },
+            });
+  
+            sketchViewModelRef.current.on("create", (event) => {
+              if (event.state === "complete") {
+                // Add selected geometry to the map
+                view.graphics.add(event.graphic);
+              }
+            });
+  
+            widgetsRef.current.sketchViewModel = sketchViewModelRef.current;
+          }
+  
+          // Toolbar functionality
+          if (distanceRef.current) {
+            distanceRef.current.onclick = function () {
+              widgetsRef.current.measurement.activeTool = "distance";
+            };
+          }
+  
+          if (areaRef.current) {
+            areaRef.current.onclick = function () {
+              widgetsRef.current.measurement.activeTool = "area";
+            };
+          }
+  
+          if (clearRef.current) {
+            clearRef.current.onclick = function () {
+              widgetsRef.current.measurement.clear();
+              polygonGraphicsLayer.current?.removeAll();
+              view.graphics.removeAll();
+              markerLayer.current?.removeAll();
+            };
+          }
+  
+          if (radiusRef.current) {
+            radiusRef.current.onclick = function () {
+              radiusDropdownRef.current.classList.toggle('hidden'); // Show/hide the dropdown
+            };
+          }
+  
+          if (selectRef.current) {
+            selectRef.current.onclick = () => {
+              view.graphics.removeAll(); // Clear previous graphics
+              sketchViewModelRef.current?.create('rectangle');
+            };
+          }
         }
+
+        
 
         if (!widgetsRef.current.locate) {
           const locateWidget = new Locate({ view });
@@ -280,81 +361,7 @@ const Widgets = ({ view }) => {
           widgetsRef.current.coordinateConversion = coordinateConversion;
         }
 
-        if (!widgetsRef.current.print) {
-          const printWidget = new Print({
-            view: view,
-            printServiceUrl:
-              "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
-          });
-          const printExpand = new Expand({
-            content: printWidget,
-            view: view,
-            expanded: false,
-            expandIconClass: "esri-icon-printer",
-            expandTooltip: "Print Map",
-          });
-          view.ui.add(printExpand, "top-right");
-          widgetsRef.current.print = printExpand;
-        }
 
-        if (!widgetsRef.current.measurement) {
-          const measurement = new Measurement({ view });
-          view.ui.add(measurement, "bottom-right");
-          widgetsRef.current.measurement = measurement;
-        }
-
-        // Create SketchViewModel for selecting geometry
-        if (!widgetsRef.current.sketchViewModel) {
-          sketchViewModelRef.current = new SketchViewModel({
-            view,
-            layer: new GraphicsLayer(),
-            polygonSymbol: { type: "simple-fill", color: [255, 0, 0, 0.3], outline: { color: "red", width: 2 } },
-          });
-
-          sketchViewModelRef.current.on("create", (event) => {
-            if (event.state === "complete") {
-              // Add selected geometry to the map
-              view.graphics.add(event.graphic);
-            }
-          });
-
-          widgetsRef.current.sketchViewModel = sketchViewModelRef.current;
-        }
-
-        // Toolbar functionality
-        if (distanceRef.current) {
-          distanceRef.current.onclick = function () {
-            widgetsRef.current.measurement.activeTool = "distance";
-          };
-        }
-
-        if (areaRef.current) {
-          areaRef.current.onclick = function () {
-            widgetsRef.current.measurement.activeTool = "area";
-          };
-        }
-
-        if (clearRef.current) {
-          clearRef.current.onclick = function () {
-            widgetsRef.current.measurement.clear();
-            polygonGraphicsLayer.current?.removeAll();
-            view.graphics.removeAll();
-            markerLayer.current?.removeAll();
-          };
-        }
-
-        if (radiusRef.current) {
-          radiusRef.current.onclick = function () {
-            radiusDropdownRef.current.classList.toggle('hidden'); // Show/hide the dropdown
-          };
-        }
-
-        if (selectRef.current) {
-          selectRef.current.onclick = () => {
-            view.graphics.removeAll(); // Clear previous graphics
-            sketchViewModelRef.current?.create('rectangle');
-          };
-        }
       }
     });
 
@@ -375,26 +382,59 @@ const Widgets = ({ view }) => {
 
   return (
     <div>
-      <div ref={toolbarDivRef} id="toolbarDiv" className="esri-component esri-widget absolute top-44 left-[14px] z-10">
-        <button ref={distanceRef} className="esri-widget--button esri-interactive esri-icon-measure-line" title="Distance Measurement Tool"></button>
-        <button ref={areaRef} className="esri-widget--button esri-interactive esri-icon-measure-area" title="Area Measurement Tool"></button>
-        <button ref={radiusRef} className="esri-widget--button esri-interactive esri-icon-dial" title="Radius Measurement Tool"></button>
-        <button ref={selectRef} className="esri-widget--button esri-interactive esri-icon-checkbox-unchecked" title="Select by Rectangle"></button>
-        <div ref={radiusDropdownRef} className="esri-widget esri-interactive absolute top-8 left-[60px] z-10 bg-white shadow-md p-2 rounded hidden">
-          <label htmlFor="radius-select">Choose Radius:</label>
-          <select id="radius-select" onChange={(e) => setSelectedRadius(Number(e.target.value))} value={selectedRadius}>
-            <option value={0}>Choose km</option>
-            <option value={50}>50 km</option>
-            <option value={100}>100 km</option>
-            <option value={200}>200 km</option>
-            <option value={500}>500 km</option>
-            <option value={1000}>1000 km</option>
-          </select>
+      {!is3D && (
+        <div
+          ref={toolbarDivRef}
+          id="toolbarDiv"
+          className="esri-component esri-widget absolute top-44 left-[14px] z-10"
+        >
+          <button
+            ref={distanceRef}
+            className="esri-widget--button esri-interactive esri-icon-measure-line"
+            title="Distance Measurement Tool"
+          ></button>
+          <button
+            ref={areaRef}
+            className="esri-widget--button esri-interactive esri-icon-measure-area"
+            title="Area Measurement Tool"
+          ></button>
+          <button
+            ref={radiusRef}
+            className="esri-widget--button esri-interactive esri-icon-dial"
+            title="Radius Measurement Tool"
+          ></button>
+          <button
+            ref={selectRef}
+            className="esri-widget--button esri-interactive esri-icon-checkbox-unchecked"
+            title="Select by Rectangle"
+          ></button>
+          <div
+            ref={radiusDropdownRef}
+            className="esri-widget esri-interactive absolute top-8 left-[60px] z-10 bg-white shadow-md p-2 rounded hidden"
+          >
+            <label htmlFor="radius-select">Choose Radius:</label>
+            <select
+              id="radius-select"
+              onChange={(e) => setSelectedRadius(Number(e.target.value))}
+              value={selectedRadius}
+            >
+              <option value={0}>Choose km</option>
+              <option value={50}>50 km</option>
+              <option value={100}>100 km</option>
+              <option value={200}>200 km</option>
+              <option value={500}>500 km</option>
+              <option value={1000}>1000 km</option>
+            </select>
+          </div>
+          <button
+            ref={clearRef}
+            className="esri-widget--button esri-interactive esri-icon-trash"
+            title="Clear Measurements"
+          ></button>
         </div>
-        <button ref={clearRef} className="esri-widget--button esri-interactive esri-icon-trash" title="Clear Measurements"></button>
-      </div>
+      )}
     </div>
-  );
+  );             
 };
 
 export default Widgets;

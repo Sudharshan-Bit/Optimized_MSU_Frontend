@@ -104,7 +104,7 @@
 
 
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import esriConfig from '@arcgis/core/config';
@@ -113,8 +113,10 @@ import Circle from '@arcgis/core/geometry/Circle';
 import Point from '@arcgis/core/geometry/Point';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import sendJsonData from '../../apiService';
+import BgLoader from '../bg_loader';
 
 const OPUSnet = ({ onLayerReady, symbolType, is3D }) => {
+  const[bg_loader,setBgLoader]=useState(true);
   useEffect(() => {
     const date = new Date('2018-10-27');
     const input_data = {
@@ -124,6 +126,8 @@ const OPUSnet = ({ onLayerReady, symbolType, is3D }) => {
 
     console.log("Symbol Type:", symbolType);
     console.log("Is 3D:", is3D);
+
+    setBgLoader(true);
 
     sendJsonData(input_data)
       .then((response) => {
@@ -252,13 +256,18 @@ const OPUSnet = ({ onLayerReady, symbolType, is3D }) => {
           onLayerReady(geojsonLayer); // Add GeoJSON layer first
           onLayerReady(graphicsLayer); // Add Graphics layer for uncertainty
         }
+        // setBgLoader(false);
+        setTimeout(() => {
+          setBgLoader(false);
+        }, 3000); // 3000 ms = 3 seconds
       })
       .catch((error) => {
         console.error('Error fetching STACOV data:', error);
       });
+      // setBgLoader(false);
   }, [onLayerReady, symbolType, is3D]);
 
-  return null; // This component does not render anything
+  return bg_loader ? <BgLoader /> : null; // This component does not render anything
 };
 
 export default OPUSnet;

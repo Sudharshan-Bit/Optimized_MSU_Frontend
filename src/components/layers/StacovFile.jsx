@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, {useState, useEffect } from 'react';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
 import esriConfig from '@arcgis/core/config';
 import sendJsonData from '../../apiService';
+import BgLoader from '../bg_loader';
 
 const StacovFile = ({ onLayerReady,symbolType,is3D}) => {
+  const [bg_loader, setBgLoader] = useState(true);  // Update to bg_loader state
   useEffect(() => {
     const date = new Date('2024-04-14');
     const input_data = {
@@ -13,6 +15,7 @@ const StacovFile = ({ onLayerReady,symbolType,is3D}) => {
 
     console.log("Pass",symbolType)
     console.log(is3D)
+    setBgLoader(true);
 
     sendJsonData(input_data)
       .then((response) => {
@@ -125,13 +128,18 @@ const StacovFile = ({ onLayerReady,symbolType,is3D}) => {
         if (onLayerReady) {
           onLayerReady(geojsonLayer);
         }
+        // setBgLoader(false);
+        setTimeout(() => {
+          setBgLoader(false);
+        }, 3000); // 3000 ms = 3 seconds
       })
       .catch((error) => {
         console.error('There was an error fetching STACOV data!', error);
       });
+      // setBgLoader(false);
   }, [onLayerReady,symbolType]);
 
-  return null; // This component does not render anything
+  return bg_loader ? <BgLoader /> : null;; // This component does not render anything
 };
 
 export default StacovFile;

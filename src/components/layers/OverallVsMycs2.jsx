@@ -3,10 +3,12 @@ import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
 import esriConfig from '@arcgis/core/config';
 import sendJsonData from '../../apiService';
 import moment from 'moment-timezone';
+import BgLoader from '../bg_loader';
 
 const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D }) => {
   // State to store the GeoJSON URL
   const [geoJsonUrl, setGeoJsonUrl] = useState(null);
+  const[bg_loader,setBgLoader]=useState(true);
 
   // Fetch data only once when the component mounts
   useEffect(() => {
@@ -16,6 +18,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D }) => {
       options: 'Over All Vs MYCS2',
     };
 
+    setBgLoader(true);
     sendJsonData(input_data)
       .then((response) => {
         const fetchedData = response.data;
@@ -135,9 +138,10 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D }) => {
     if (onLayerReady) {
       onLayerReady(geojsonLayer);
     }
+    setBgLoader(false);
   }, [geoJsonUrl, onLayerReady, symbolType, is3D]); // Dependencies that trigger this effect
 
-  return null; // This component does not render anything
+  return bg_loader ? <BgLoader /> : null;; // This component does not render anything
 };
 
 export default OverallVsMycs2;

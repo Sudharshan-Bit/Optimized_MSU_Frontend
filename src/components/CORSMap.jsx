@@ -8,6 +8,7 @@ import StacovFile from './layers/StacovFile';
 import Overall from './layers/Overall';
 import OPUSnet from './layers/OPUSnet';
 import OverallVsMycs2 from './layers/OverallVsMycs2';
+import BgLoader from './bg_loader';
 
 const CORSMap = ({ selectedLayer = null, is3D = false }) => {
   const mapRef = useRef(null); // Map container reference
@@ -15,6 +16,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
   const [map, setMap] = useState(null); // State to store map instance
   const [symbolType, setSymbolType] = useState('icon'); // State for symbol type
   const [isMapLoaded, setIsMapLoaded] = useState(false); // State to track map loading
+  const [bg_loader, setBgLoader] = useState(true);  // Update to bg_loader state
 
   useEffect(() => {
     const mapInstance = new Map({
@@ -95,7 +97,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
 
         {/* Widgets */}
         {isMapLoaded && (
-          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} />
+          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} is3D={is3D}/>
         )}
 
         {/* Render the selected layer component */}
