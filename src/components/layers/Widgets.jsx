@@ -185,6 +185,10 @@ import Measurement from "@arcgis/core/widgets/Measurement";
 import CoordinateConversion from "@arcgis/core/widgets/CoordinateConversion";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel"; // For selection tool
+import Collection from "@arcgis/core/core/Collection";
+import * as locator from "@arcgis/core/rest/locator";
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import * as geometryEngineAsync from '@arcgis/core/geometry/geometryEngineAsync';
 
 const Widgets = ({ view,is3D }) => {
   const widgetsRef = useRef({
@@ -220,11 +224,11 @@ const Widgets = ({ view,is3D }) => {
     view.when(() => {
       if (view.ui) {
         // Add widgets if they haven't been added yet
-        if (!widgetsRef.current.search) {
-          const searchWidget = new Search({ view });
-          view.ui.add(searchWidget, 'top-right');
-          widgetsRef.current.search = searchWidget;
-        }
+        // if (!widgetsRef.current.search) {
+        //   const searchWidget = new Search({ view });
+        //   view.ui.add(searchWidget, 'top-right');
+        //   widgetsRef.current.search = searchWidget;
+        // }
         
 
         if (!widgetsRef.current.basemapGallery) {
@@ -262,13 +266,61 @@ const Widgets = ({ view,is3D }) => {
         if(is3D){
         }else{
           if (!widgetsRef.current.bookmarks) {
-            const bookmarks = new Expand({
-              content: new Bookmarks({ view }),
-              view,
-              expanded: false,
-            });
-            view.ui.add(bookmarks, 'top-right');
-            widgetsRef.current.bookmarks = bookmarks;
+            // Add Bookmarks
+        if (!is3D && !widgetsRef.current.bookmarks) {
+          const storedBookmarks = localStorage.getItem("userBookmarks");
+          let initialBookmarks = [];
+
+          if (storedBookmarks) {
+            try {
+              initialBookmarks = JSON.parse(storedBookmarks);
+            } catch (error) {
+              console.error("Error parsing bookmarks from localStorage:", error);
+            }
+          }
+
+          const bookmarksWidget = new Bookmarks({
+            view,
+            dragEnabled: true,
+            visibleElements: {
+              editBookmarkButton: true,
+              addBookmarkButton: true,
+            },
+            bookmarks: new Collection(initialBookmarks),
+          });
+
+          const bookmarksExpand = new Expand({
+            view,
+            content: bookmarksWidget,
+            expanded: false,
+          });
+
+          view.ui.add(bookmarksExpand, "top-right");
+          widgetsRef.current.bookmarks = bookmarksWidget;
+
+          bookmarksWidget.bookmarks.on("change", (event) => {
+            const updatedBookmarks = bookmarksWidget.bookmarks.toArray();
+            localStorage.setItem("userBookmarks", JSON.stringify(updatedBookmarks));
+          });
+
+          bookmarksWidget.on("bookmark-select", (event) => {
+            const selectedBookmark = event.bookmark;
+            if (selectedBookmark?.extent) {
+              view.goTo(selectedBookmark.extent);
+            } else if (selectedBookmark?.name) {
+              locator
+                .addressToLocations("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer", {
+                  address: { SingleLine: selectedBookmark.name },
+                  maxLocations: 1,
+                })
+                .then((results) => {
+                  if (results.length > 0) {
+                    view.goTo({ target: results[0].location, zoom: 12 });
+                  }
+                });
+            }
+          });
+        }
           }
           if (!widgetsRef.current.print) {
             const printWidget = new Print({
@@ -337,7 +389,9 @@ const Widgets = ({ view,is3D }) => {
             radiusRef.current.onclick = function () {
               radiusDropdownRef.current.classList.toggle('hidden'); // Show/hide the dropdown
             };
+            
           }
+          
   
           if (selectRef.current) {
             selectRef.current.onclick = () => {

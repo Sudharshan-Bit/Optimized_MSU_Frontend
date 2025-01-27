@@ -3,6 +3,7 @@ import '@arcgis/core/assets/esri/themes/light/main.css';
 import Map from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import SceneView from '@arcgis/core/views/SceneView';
+import Search from '@arcgis/core/widgets/Search';
 import Widgets from './layers/Widgets'; // Widgets Component
 import StacovFile from './layers/StacovFile';
 import Overall from './layers/Overall';
@@ -16,7 +17,6 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
   const [map, setMap] = useState(null); // State to store map instance
   const [symbolType, setSymbolType] = useState('icon'); // State for symbol type
   const [isMapLoaded, setIsMapLoaded] = useState(false); // State to track map loading
-  const [bg_loader, setBgLoader] = useState(true);  // Update to bg_loader state
 
   useEffect(() => {
     const mapInstance = new Map({
@@ -39,10 +39,68 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
 
     view.when(() => {
       setIsMapLoaded(true); // Mark map as loaded
+
+      // Add Search widget to the view
+      const customSearchSource = {
+        placeholder: "Search by SITEID",
+        getSuggestions: (params) => {
+          return esriRequest(url, {
+            responseType: "json"
+          }).then((results) => {
+            return results.data.features
+              .filter((feature) => feature.properties.SITEID.includes(params.suggestTerm))
+              .map((feature) => ({
+                key: feature.properties.SITEID,
+                text: feature.properties.SITEID,
+                sourceIndex: params.sourceIndex
+              }));
+          });
+        },
+        getResults: (params) => {
+          return esriRequest(url, {
+            responseType: "json"
+          }).then((results) => {
+            const filteredFeatures = results.data.features.filter((feature) =>
+              feature.properties.SITEID === params.suggestResult.text.trim()
+            );
+
+            const searchResults = filteredFeatures.map((feature) => {
+              const graphic = new Graphic({
+                geometry: new Point({
+                  x: feature.geometry.coordinates[0],
+                  y: feature.geometry.coordinates[1]
+                }),
+                attributes: feature.properties
+              });
+
+              const buffer = geometryEngine.geodesicBuffer(graphic.geometry, 100, "meters");
+              const propertiesString = Object.entries(feature.properties)
+                .slice(0, -1)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(", ");
+              return {
+                extent: buffer.extent,
+                feature: graphic,
+                name: propertiesString,
+              };
+            });
+
+            return searchResults;
+          });
+        }
+      };
+      const searchWidget = new Search({
+        view: view,
+      });
+      view.ui.add(searchWidget, {
+        position: 'top-right',
+      });
     });
 
     viewRef.current = view;
     setMap(mapInstance);
+
+    
 
     return () => {
       if (view) {
@@ -71,6 +129,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
       }
     }
   };
+  
 
   const renderLayerComponent = () => {
     switch (selectedLayer) {
@@ -81,7 +140,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
       case 'OPUSNET Data':
         return <OPUSnet onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
       case 'Over All Vs MYCS2':
-        return<OverallVsMycs2 onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
+        return <OverallVsMycs2 onLayerReady={handleLayerReady} symbolType={symbolType} is3D={is3D} />;
       default:
         if (map) {
           map.layers.removeAll();
@@ -97,7 +156,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
 
         {/* Widgets */}
         {isMapLoaded && (
-          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} is3D={is3D}/>
+          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} is3D={is3D} />
         )}
 
         {/* Render the selected layer component */}
@@ -144,3 +203,4 @@ const CORSMap = ({ selectedLayer = null, is3D = false }) => {
 };
 
 export default CORSMap;
+
