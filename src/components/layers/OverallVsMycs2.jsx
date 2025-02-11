@@ -22,7 +22,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
     const formattedDate = moment(selectedDate).tz('America/Los_Angeles').format('YYYY-MM-DD');
     console.log('Formatted Date:', formattedDate);
     
-    const date = selectedDate ? new Date(formattedDate) : new Date("2010-01-01");
+    const date = selectedDate ? new Date(formattedDate) : new Date("2010-01-21");
     const input_data = {
       date: date,
       options: 'Over All Vs MYCS2',
@@ -47,7 +47,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
         console.error('Error fetching OverallVsMycs2 data:', error);
         alert("Check the date and layer");
       });
-  }, []); // Empty dependency array ensures this runs only once
+  }, [selectedDate]); // Empty dependency array ensures this runs only once
 
   // Update the layer when geoJsonUrl, symbolType, or is3D changes
   useEffect(() => {
@@ -150,7 +150,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
       onLayerReady(geojsonLayer);
     }
     setBgLoader(false);
-  }, [geoJsonUrl, onLayerReady, symbolType, is3D]); // Dependencies that trigger this effect
+  }, [selectedDate,geoJsonUrl, onLayerReady, symbolType, is3D]); // Dependencies that trigger this effect
 
   return bg_loader ? <BgLoader /> : null;; // This component does not render anything
 };

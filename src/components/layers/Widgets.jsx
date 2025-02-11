@@ -252,9 +252,6 @@ const Widgets = ({ view,is3D }) => {
             };
           }
         }
-
-        
-
         if (!widgetsRef.current.locate) {
           const locateWidget = new Locate({ view });
           view.ui.add(locateWidget, 'top-left');

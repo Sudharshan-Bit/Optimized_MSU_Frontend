@@ -117,20 +117,14 @@ import BgLoader from '../bg_loader';
 import { useGeojson } from "../../context/GeojsonProvider"; // Import Context
 import moment from 'moment-timezone'; // Import moment-timezone for date manipulation
 
-const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate}) => {
+const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
   const { setGeojsonLayer } = useGeojson(); // Get setter from Context
   const[bg_loader,setBgLoader]=useState(true);
   useEffect(() => {
-    // const date = new Date('2018-10-27');
-
-    console.log('OPUSNET',selectedDate);
-
-
     const formattedDate = moment(selectedDate).tz('America/Los_Angeles').format('YYYY-MM-DD');
     console.log('Formatted Date:', formattedDate);
     
     const date = selectedDate ? new Date(formattedDate) : new Date("2018-10-27");
-
     const input_data = {
       date: date,
       options: 'OPUSNET Data',
@@ -145,7 +139,6 @@ const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate}) => {
       .then((response) => {
         const fetchedData = response.data;
         console.log("Fetched Data:", fetchedData);
-
         // Set Esri API Key
         esriConfig.apiKey = 'AAPTxy8BH1VEsoebNVZXo8HurAU2wRtTCz35rS0IvyV5k0_FmOjKifjQ4MXaetOWAPxQ99ta0HCHYBSsLmJ-RxrEVoyLsT6hCItuii1Wq0Ctiu8ofOMIIcBYiR8_N3HQmOSC4MrerZZW_MiUovETiVP-I6qSZhn0k8qO1SF990cDX26ydD9ug32faqQlUjvebO0WHRrwPN3h0mdKEKlKMAZE8hjWCQHcEG7BM34DXJKiL7A.AT1_B2uSZ31B';
 
@@ -275,7 +268,6 @@ const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate}) => {
       })
       .catch((error) => {
         console.error('Error fetching STACOV data:', error);
-        alert("Check the date and layer");
       });
       // setBgLoader(false);
   }, [onLayerReady, symbolType, is3D]);

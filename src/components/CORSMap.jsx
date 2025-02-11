@@ -65,24 +65,20 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
     if (map) {
       map.layers.removeAll();
       map.add(layer);
-
-      if (layer.url !== layerUrlRef.current) {
-        layerUrlRef.current = layer.url;
-        addSearchWidget(viewRef.current, layer.url);
-      }
-
+  
       if (markerLayer.current) {
         map.add(markerLayer.current);
       }
     }
   };
-
+  
   const addSearchWidget = (view, url) => {
+    // Always add the search widget, no conditions
     const existingSearchWidget = view.ui.find('customSearchWidget');
     if (existingSearchWidget) {
-      view.ui.remove(existingSearchWidget);
+      view.ui.remove(existingSearchWidget); // Remove the old widget if it exists
     }
-
+  
     const customSearchSource = {
       placeholder: 'Search by SITEID',
       getSuggestions: (params) => {
@@ -105,7 +101,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
           const filteredFeatures = results.data.features.filter(
             (feature) => feature.properties.SITEID === params.suggestResult.text.trim()
           );
-
+  
           return filteredFeatures.map((feature) => {
             const graphic = new Graphic({
               geometry: new Point({
@@ -115,7 +111,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
               }),
               attributes: feature.properties,
             });
-
+  
             return {
               feature: graphic,
               name: `SITEID: ${graphic.attributes.SITEID}`,
@@ -137,11 +133,11 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
             },
           },
         });
-
+  
         markerLayer.current.removeAll();
         markerLayer.current.add(searchPoint);
         setHasMarkers(true); // Set hasMarkers to true when a marker is added
-
+  
         view.goTo(
           {
             center: result.feature.geometry,
@@ -155,18 +151,25 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
         );
       },
     };
-
+  
     const searchWidget = new Search({
       view: view,
       sources: [customSearchSource],
     });
-
+  
     searchWidget.id = 'customSearchWidget';
     view.ui.add(searchWidget, {
       position: 'top-right',
     });
   };
-
+  
+  useEffect(() => {
+    if (viewRef.current && map) {
+      // Always add the search widget as soon as the map and view are available
+      addSearchWidget(viewRef.current, layerUrlRef.current);
+    }
+  }, [map, viewRef.current]);
+  
   useEffect(() => {
     if (Coordinates && viewRef.current && markerLayer.current) {
       const lat = Coordinates.lat;
