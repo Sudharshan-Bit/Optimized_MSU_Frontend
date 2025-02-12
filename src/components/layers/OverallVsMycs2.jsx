@@ -6,10 +6,10 @@ import moment from 'moment-timezone';
 import BgLoader from '../bg_loader';
 import { useGeojson } from "../../context/GeojsonProvider"; // Import Context
 
-const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
+const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate,setBlobUrl,blobUrl}) => {
   const { setGeojsonLayer } = useGeojson(); // Get setter from Context
   // State to store the GeoJSON URL
-  const [geoJsonUrl, setGeoJsonUrl] = useState(null);
+  // const [geoJsonUrl, setGeoJsonUrl] = useState(null);
   const[bg_loader,setBgLoader]=useState(true);
 
   // Fetch data only once when the component mounts
@@ -29,6 +29,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
     };
 
     setBgLoader(true);
+    setBlobUrl(null);
     sendJsonData(input_data)
       .then((response) => {
         const fetchedData = response.data;
@@ -39,9 +40,12 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
           type: 'application/json',
         });
         const url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+
+        setBgLoader(false);
 
         // Set the GeoJSON URL in state
-        setGeoJsonUrl(url);
+        // setGeoJsonUrl(url);
       })
       .catch((error) => {
         console.error('Error fetching OverallVsMycs2 data:', error);
@@ -51,7 +55,7 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
 
   // Update the layer when geoJsonUrl, symbolType, or is3D changes
   useEffect(() => {
-    if (!geoJsonUrl) return; // Don't proceed until the GeoJSON URL is available
+    if (!blobUrl) return; // Don't proceed until the GeoJSON URL is available
 
     // Set Esri API Key
     esriConfig.apiKey = 'AAPTxy8BH1VEsoebNVZXo8HurAU2wRtTCz35rS0IvyV5k0_FmOjKifjQ4MXaetOWAPxQ99ta0HCHYBSsLmJ-RxrEVoyLsT6hCItuii1Wq0Ctiu8ofOMIIcBYiR8_N3HQmOSC4MrerZZW_MiUovETiVP-I6qSZhn0k8qO1SF990cDX26ydD9ug32faqQlUjvebO0WHRrwPN3h0mdKEKlKMAZE8hjWCQHcEG7BM34DXJKiL7A.AT1_B2uSZ31B';
@@ -140,17 +144,17 @@ const OverallVsMycs2 = ({ onLayerReady, symbolType, is3D, selectedDate}) => {
 
     // Create GeoJSONLayer
     const geojsonLayer = new GeoJSONLayer({
-      url: geoJsonUrl,
+      url: blobUrl,
       popupTemplate: template,
       renderer: renderer,
     });
-    setGeojsonLayer(geojsonLayer);
+    // setGeojsonLayer(geojsonLayer);
     // Notify the parent component about the GeoJSON layer
     if (onLayerReady) {
       onLayerReady(geojsonLayer);
     }
-    setBgLoader(false);
-  }, [selectedDate,geoJsonUrl, onLayerReady, symbolType, is3D]); // Dependencies that trigger this effect
+    // setBgLoader(false);
+  }, [selectedDate,blobUrl, onLayerReady, symbolType, is3D]); // Dependencies that trigger this effect
 
   return bg_loader ? <BgLoader /> : null;; // This component does not render anything
 };

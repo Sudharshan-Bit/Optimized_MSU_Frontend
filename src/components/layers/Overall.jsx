@@ -164,7 +164,7 @@ import BgLoader from '../bg_loader';
 import { useGeojson } from "../../context/GeojsonProvider"; // Import Context
 import moment from 'moment-timezone'; // Import moment-timezone for date manipulation
 
-const Overall = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
+const Overall = ({ onLayerReady, symbolType, is3D,selectedDate,setBlobUrl }) => {
   const { setGeojsonLayer } = useGeojson(); // Get setter from Context
   const [bg_loader, setBgLoader] = useState(true);
   const [fetchedData, setFetchedData] = useState(null); // Store fetched data here
@@ -189,8 +189,10 @@ const Overall = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
 
     console.log("Pass", symbolType);
     console.log(is3D);
+    
 
     setBgLoader(true); // Set loading true when starting the fetch
+    setBlobUrl(null);
 
     sendJsonData(input_data)
       .then((response) => {
@@ -205,7 +207,8 @@ const Overall = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
           type: 'application/json',
         });
         const url = URL.createObjectURL(blob);
-
+        
+        setBlobUrl(url);
         // Set the GeoJSON URL and update the state
         setFetchedData((prevData) => ({ ...prevData, geoJsonUrl: url }));
 

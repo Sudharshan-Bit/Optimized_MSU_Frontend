@@ -14,7 +14,7 @@ import Graphic from '@arcgis/core/Graphic';
 import Point from '@arcgis/core/geometry/Point';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 
-const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates }) => {
+const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates}) => {
   const mapRef = useRef(null);
   const viewRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -23,6 +23,8 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
   const [hasMarkers, setHasMarkers] = useState(false); // State to track if there are markers
   const layerUrlRef = useRef(null);
   const markerLayer = useRef(null);
+  const [blobUrl, setBlobUrl] = useState(null);
+  
 
   useEffect(() => {
     const mapInstance = new Map({
@@ -164,11 +166,19 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
   };
   
   useEffect(() => {
-    if (viewRef.current && map) {
+    
+    if (viewRef.current && map && blobUrl) {
+      console.log("blobUrl",blobUrl)
       // Always add the search widget as soon as the map and view are available
-      addSearchWidget(viewRef.current, layerUrlRef.current);
+      addSearchWidget(viewRef.current, blobUrl);
     }
-  }, [map, viewRef.current]);
+    else if(viewRef.current){
+      const existingSearchWidget = viewRef.current.ui.find('customSearchWidget');
+      if (existingSearchWidget) {
+        viewRef.current.ui.remove(existingSearchWidget); // Remove the old widget if it exists
+      }
+    }
+  }, [map, viewRef.current,blobUrl,selectedLayer]);
   
   useEffect(() => {
     if (Coordinates && viewRef.current && markerLayer.current) {
@@ -231,13 +241,13 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
   const renderLayerComponent = () => {
     switch (selectedLayer) {
       case 'Static JSON + STACOV File':
-        return <StacovFile onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} />;
+        return <StacovFile onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} setBlobUrl={setBlobUrl} blobUrl={blobUrl}/>;
       case 'Over All Site Info':
-        return <Overall onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} />;
+        return <Overall onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} setBlobUrl={setBlobUrl} blobUrl={blobUrl}/>;
       case 'OPUSNET Data':
-        return <OPUSnet onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} />;
+        return <OPUSnet onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} setBlobUrl={setBlobUrl} blobUrl={blobUrl}/>;
       case 'Over All Vs MYCS2':
-        return <OverallVsMycs2 onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} />;
+        return <OverallVsMycs2 onLayerReady={handleLayerReady} selectedDate={selectedDate} symbolType={symbolType} is3D={is3D} setBlobUrl={setBlobUrl} blobUrl={blobUrl}/>;
       default:
         if (map) {
           map.layers.removeAll();
@@ -251,7 +261,7 @@ const CORSMap = ({ selectedLayer = null, is3D = false, selectedDate, Coordinates
       <div className="cors-map" style={{ position: 'relative' }}>
         <div ref={mapRef} className="h-[88vh] w-full"></div>
         {isMapLoaded && (
-          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} is3D={is3D} />
+          <Widgets view={viewRef.current} onToggleFullscreen={toggleFullscreen} is3D={is3D} blobUrl={blobUrl} selectedLayer={selectedLayer} />
         )}
         {hasMarkers && (
           <button

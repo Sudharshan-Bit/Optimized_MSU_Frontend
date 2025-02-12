@@ -117,7 +117,7 @@ import BgLoader from '../bg_loader';
 import { useGeojson } from "../../context/GeojsonProvider"; // Import Context
 import moment from 'moment-timezone'; // Import moment-timezone for date manipulation
 
-const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
+const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate,setBlobUrl }) => {
   const { setGeojsonLayer } = useGeojson(); // Get setter from Context
   const[bg_loader,setBgLoader]=useState(true);
   useEffect(() => {
@@ -134,6 +134,7 @@ const OPUSnet = ({ onLayerReady, symbolType, is3D,selectedDate }) => {
     console.log("Is 3D:", is3D);
 
     setBgLoader(true);
+    setBlobUrl(null);
 
     sendJsonData(input_data)
       .then((response) => {

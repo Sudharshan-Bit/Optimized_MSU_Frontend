@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import CORSMap from "./CORSMap";
 import SiteStats from "./SiteStats";
+import StacovFile from "./layers/StacovFile";
 
 const ParentFeature = () => {
   const [selectedLayer, setSelectedLayer] = useState(null); // Selected dataset layer
   const [is3D, setIs3D] = useState(false); // Toggle for 2D/3D view
   const [selectedDate, setSelectedDate] = useState(""); // Selected date
   const [selectCoordinates,setCoordinates]=useState(null);
+  // const[blobUrl,setBlobUrl]=useState(null);
 
   const toggleView = () => {
     setIs3D((prev) => !prev); // Toggle between 2D and 3D view
@@ -19,7 +21,7 @@ const ParentFeature = () => {
       </header>
       <div className="flex flex-1 flex-col md:flex-row">
         <div className="flex-[5] p-2.5 relative h-[60vh] md:h-auto">
-          <CORSMap selectedLayer={selectedLayer} selectedDate={selectedDate} Coordinates={selectCoordinates} is3D={is3D} /> {/* Pass selected layer and is3D */}
+          <CORSMap selectedLayer={selectedLayer} selectedDate={selectedDate} Coordinates={selectCoordinates} is3D={is3D}/> {/* Pass selected layer and is3D */}
         </div>
         <div className="md:flex-1 p-5 bg-gray-200 overflow-y-auto">
           <SiteStats
@@ -27,6 +29,7 @@ const ParentFeature = () => {
             setSelectedDateInParent={setSelectedDate} 
             setCoordinates={setCoordinates}// Fixed prop name
           />
+
           <button
             onClick={toggleView}
             className="mt-5 bg-white text-blue-500 font-semibold px-4 py-2 rounded shadow-md hover:bg-blue-200 transition-all"

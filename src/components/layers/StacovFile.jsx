@@ -5,12 +5,13 @@ import sendJsonData from '../../apiService';
 import BgLoader from '../bg_loader';
 import { useGeojson } from "../../context/GeojsonProvider"; // Import Context
 import moment from 'moment-timezone'; // Import moment-timezone for date manipulation
+import CORSMap from '../CORSMap';
 
-const StacovFile = ({ onLayerReady, symbolType, is3D, selectedDate }) => {
+const StacovFile = ({ onLayerReady, symbolType, is3D, selectedDate,setBlobUrl,blobUrl }) => {
   const { setGeojsonLayer } = useGeojson(); // Get setter from Context
   const [bg_loader, setBgLoader] = useState(true); // Loader state
   const [fetchedData, setFetchedData] = useState(null); // Store fetched data
-  const [blobUrl, setBlobUrl] = useState(null); // Store blob URL
+   // Store blob URL
 
   useEffect(() => {
     const formattedDate = moment(selectedDate).tz('America/Los_Angeles').format('YYYY-MM-DD');
@@ -153,6 +154,7 @@ const StacovFile = ({ onLayerReady, symbolType, is3D, selectedDate }) => {
       {/* Render map or other UI elements here */}
       {/* Example: */}
       <h2>STACOV Layer Loaded Successfully</h2>
+      {/* <CORSMap blobUrl={blobUrl}/> */}
     </div>
   );
 };
